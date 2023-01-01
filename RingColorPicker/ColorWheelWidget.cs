@@ -38,15 +38,14 @@ public class ColorWheelWidget : DrawingArea
         _radius = _size / 2;
         _radius -= (int)Math.Ceiling(SelectorRadius + SelectorLineWidth);
 
-        _cursorX = _centerX;
-        _cursorY = _centerY;
-
         _isInRingClick = false;
 
         _colorWheel = new ColorWheel(_size, _radius, _centerX, _centerY);
 
         SetSizeRequest(_size, _size);
         AddEvents((int)(EventMask.ButtonPressMask | EventMask.ButtonReleaseMask | EventMask.ButtonMotionMask));
+
+        SetSelectedColorRgb(new Color(1, 1, 1));
     }
 
     public void SetSelectedColorRgb(Color color)
@@ -144,7 +143,7 @@ public class ColorWheelWidget : DrawingArea
         HSV.ToRgb(h, s, v, out double r, out double g, out double b);
 
         _selectedColor = new Color(r, g, b, 1.0);
-        
+
         ColorPicked?.Invoke(this, _selectedColor);
         QueueDraw();
     }

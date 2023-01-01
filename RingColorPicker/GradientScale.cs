@@ -31,10 +31,16 @@ public class GradientScale : DrawingArea
     private double CursorBorderLineWidth => CursorSize / 2;
     private double CursorBottomMargin => CursorSize + CursorBorderLineWidth / 2;
 
-    public delegate void ValueChangedHandler(object sender, double value);
+    public delegate void ValueChangedHandler(object sender, EventArgs e);
 
+    /// <summary>
+    /// Not invoked when Value is set from code.
+    /// </summary>
     public event ValueChangedHandler ValueChanged;
-
+    
+    /// <summary>
+    /// Get and Set Value. It doesn't invoke ValueChanged event.
+    /// </summary>
     public double Value
     {
         get => _value;
@@ -44,6 +50,10 @@ public class GradientScale : DrawingArea
             QueueDraw();
         }
     }
+
+    public int ValueAsInt => (int)Math.Round(_value);
+
+    public bool IsHue => _isHue;
 
     public GradientScale(double min, double max, double step, Color? startColor = null, Color? endColor = null,
         int height = 30)
@@ -217,8 +227,6 @@ public class GradientScale : DrawingArea
 
         context.SetSourceRGB(0, 0, 0);
         context.Fill();
-
-        //Console.WriteLine(_cursorX + " " + _cursorY);
     }
 
     private void UpdateSelectorPosition()
@@ -237,7 +245,7 @@ public class GradientScale : DrawingArea
         if (_value != tempValue)
         {
             _value = tempValue;
-            ValueChanged?.Invoke(this, _value);
+            ValueChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 

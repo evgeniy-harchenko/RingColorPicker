@@ -1,4 +1,5 @@
 using System;
+using Cairo;
 using Gdk;
 using Gtk;
 using Label = Gtk.Label;
@@ -15,16 +16,17 @@ public class ColorSelectionWheelWidget : Box
     private Grid _table;
     private Box _topRightVBox;
 
-    private SpinButton _hueSpinbutton;
-    private SpinButton _satSpinbutton;
-    private SpinButton _valSpinbutton;
-    private SpinButton _redSpinbutton;
-    private SpinButton _greenSpinbutton;
-    private SpinButton _blueSpinbutton;
+    private ColorWheelWidget _colorWheel;
+
+    private GradientScaledSpin _hueSpinbutton;
+    private GradientScaledSpin _satSpinbutton;
+    private GradientScaledSpin _valSpinbutton;
+    private GradientScaledSpin _redSpinbutton;
+    private GradientScaledSpin _greenSpinbutton;
+    private GradientScaledSpin _blueSpinbutton;
+    private GradientScaledSpin _opacitySpinbutton;
 
     private Entry _hexEntry;
-    private Scale _opacitySlider;
-    private Entry _opacityEntry;
 
     private enum ColorSel
     {
@@ -50,9 +52,8 @@ public class ColorSelectionWheelWidget : Box
 
         _vBox = new Box(Orientation.Vertical, 0);
         _topHBox.PackStart(_vBox, false, false, 0);
-        ColorWheelWidget cw = new ColorWheelWidget(200);
-        _vBox.PackStart(cw, false, false, 0);
-
+        _colorWheel = new ColorWheelWidget(200);
+        _vBox.PackStart(_colorWheel, false, false, 0);
         _hBox = new Box(Orientation.Horizontal, 6);
         _vBox.PackEnd(_hBox, false, false, 0);
 
@@ -79,8 +80,8 @@ public class ColorSelectionWheelWidget : Box
         _topHBox.PackStart(_topRightVBox, false, false, 0);
         _table = new Grid();
         _topRightVBox.PackStart(_table, false, false, 0);
-        _table.RowSpacing = 3;
-        _table.ColumnSpacing = 3;
+        _table.RowSpacing = 0;
+        _table.ColumnSpacing = 1;
 
         _table.Attach(new Label("RGB") { Halign = Align.Start, Valign = Align.Center }, 0, 0, 1, 1);
         _table.Attach(new HSeparator { Valign = Align.Center }, 1, 0, 1, 1);
@@ -90,13 +91,15 @@ public class ColorSelectionWheelWidget : Box
         make_label_spinbutton(out _blueSpinbutton, "B:", _table, 0, 3, ColorSel.COLORSEL_BLUE);
 
 
-        _table.Attach(new Label("HEX:") { Halign = Align.Start, Valign = Align.Center, MnemonicWidget = _hexEntry }, 0,
+        _table.Attach(new Label("Hex:") { Halign = Align.Start, Valign = Align.Center, MnemonicWidget = _hexEntry }, 0,
             4, 1, 1);
         _hexEntry = new Entry
         {
             TooltipText =
                 "You can enter an HTML-style hexadecimal color value, or simply a color name such as “orange” in this entry.",
-            WidthChars = 7
+            WidthChars = 7,
+            MarginStart = GradientScaledSpin.GradientWidth,
+            Halign = Align.Fill
         };
         _table.Attach(_hexEntry, 1, 4, 1, 1);
 
@@ -106,70 +109,70 @@ public class ColorSelectionWheelWidget : Box
         make_label_spinbutton(out _hueSpinbutton, "H:", _table, 0, 6, ColorSel.COLORSEL_HUE);
         make_label_spinbutton(out _satSpinbutton, "S:", _table, 0, 7, ColorSel.COLORSEL_SATURATION);
         make_label_spinbutton(out _valSpinbutton, "V:", _table, 0, 8, ColorSel.COLORSEL_VALUE);
-
-        Label opacityLabel = new Label("Op_acity")
-        {
-            Halign = Align.Start,
-            Valign = Align.Center,
-            MnemonicWidget = _opacitySlider
-        };
-
-        _table.Attach(opacityLabel, 0, 9, 1, 1);
+        
+        _table.Attach(new Label("Op_acity") { Halign = Align.Start, Valign = Align.Center }, 0, 9, 1, 1);
         _table.Attach(new HSeparator { Valign = Align.Center }, 1, 9, 1, 1);
 
-        _opacitySlider = new Scale(Orientation.Horizontal, new Adjustment(0.0, 0.0, 255.0, 1.0, 1.0, 0.0))
-        {
-            TooltipText = "Transparency of the color.",
-            DrawValue = false
-        };
-
-        _opacitySlider.AddSignalHandler("value-changed",
-            (Scale scale, EventArgs args) => { Console.WriteLine(scale.Value); });
-        _table.Attach(_opacitySlider, 1, 10, 1, 1);
-
-        _opacityEntry = new Entry
-        {
-            TooltipText = "Transparency of the color.",
-            HeightRequest = -1,
-            WidthRequest = 40
-        };
-        _opacityEntry.AddSignalHandler("activate", (Entry entry, EventArgs args) => { Console.WriteLine(entry.Text); });
-
-        _table.Attach(_opacityEntry, 2, 10, 1, 1);
+        make_label_spinbutton(out _opacitySpinbutton, null, _table, 0, 10, ColorSel.COLORSEL_OPACITY);
 
         ShowAll();
 
-        //_topHBox.ShowAll();
+        UpdateColors();
+
+        // TODO in ColorWheel color to args and add color selected property
+        _colorWheel.ColorPicked += (sender, color) => { UpdateColors(); };
     }
 
-    private static void make_label_spinbutton(out SpinButton spinButton, string text, Grid table, int i, int j,
+    private static void make_label_spinbutton(out GradientScaledSpin spinButton, string text, Grid table, int i, int j,
         ColorSel channelType)
     {
         Adjustment adjust;
-        spinButton = new SpinButton(null, 10.0, 0);
 
         switch (channelType)
         {
             case ColorSel.COLORSEL_HUE:
-                spinButton.Wrap = true;
                 adjust = new Adjustment(0.0, 0.0, 360.0, 1.0, 1.0, 0.0);
+                spinButton = new GradientScaledSpin(adjust);
+                spinButton.Wrap = true;
                 break;
             case ColorSel.COLORSEL_SATURATION:
             case ColorSel.COLORSEL_VALUE:
                 adjust = new Adjustment(0.0, 0.0, 100.0, 1.0, 1.0, 0.0);
+                spinButton = new GradientScaledSpin(adjust, new Cairo.Color(0, 0, 0), new Cairo.Color(0, 0, 0));
                 break;
             default:
                 adjust = new Adjustment(0.0, 0.0, 255.0, 1.0, 1.0, 0.0);
+                spinButton = new GradientScaledSpin(adjust, new Cairo.Color(0, 0, 0), new Cairo.Color(0, 0, 0));
                 break;
         }
 
         //adjust.AddSignalHandler("value-changed", () => { });
-        spinButton.Adjustment = adjust;
 
         Label label = new Label(text) { Halign = Align.Start, Valign = Align.Center, MnemonicWidget = spinButton };
 
         table.Attach(label, i, j, 1, 1);
         table.Attach(spinButton, i + 1, j, 1, 1);
+    }
+
+    private void UpdateColors()
+    {
+        Cairo.Color colorRgb = _colorWheel.SelectedColor;
+        ColorHsv colorHsv = new ColorHsv(colorRgb);
+
+        _redSpinbutton.ChangeGradientStartColor(new Cairo.Color(0, colorRgb.G, colorRgb.B));
+        _redSpinbutton.ChangeGradientEndColor(new Cairo.Color(1, colorRgb.G, colorRgb.B));
+        _greenSpinbutton.ChangeGradientStartColor(new Cairo.Color(colorRgb.R, 0, colorRgb.B));
+        _greenSpinbutton.ChangeGradientEndColor(new Cairo.Color(colorRgb.R, 1, colorRgb.B));
+        _blueSpinbutton.ChangeGradientStartColor(new Cairo.Color(colorRgb.R, colorRgb.G, 0));
+        _blueSpinbutton.ChangeGradientEndColor(new Cairo.Color(colorRgb.R, colorRgb.G, 1));
+
+        _satSpinbutton.ChangeGradientStartColor(new ColorHsv(colorHsv.H, 0, colorHsv.V).ToRgbColor());
+        _satSpinbutton.ChangeGradientEndColor(new ColorHsv(colorHsv.H, 1, colorHsv.V).ToRgbColor());
+        _valSpinbutton.ChangeGradientStartColor(new ColorHsv(colorHsv.H, colorHsv.S, 0).ToRgbColor());
+        _valSpinbutton.ChangeGradientEndColor(new ColorHsv(colorHsv.H, colorHsv.S, 1).ToRgbColor());
+
+        _opacitySpinbutton.ChangeGradientStartColor(new Cairo.Color(colorRgb.R, colorRgb.G, colorRgb.B, 0));
+        _opacitySpinbutton.ChangeGradientEndColor(new Cairo.Color(colorRgb.R, colorRgb.G, colorRgb.B, 1));
     }
 
     private static double ScaleRound(double val, double factor)
