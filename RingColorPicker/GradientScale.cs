@@ -8,7 +8,6 @@ namespace RingColorPicker;
 
 public class GradientScale : DrawingArea
 {
-    private readonly bool _isHue;
     private readonly double _min;
     private readonly double _max;
     private readonly double _step;
@@ -17,6 +16,7 @@ public class GradientScale : DrawingArea
     private Color _startColor;
     private Color _endColor;
 
+    private bool _isHue;
     private bool _isInRectClick;
     private double _cursorX, _cursorY;
 
@@ -37,7 +37,7 @@ public class GradientScale : DrawingArea
     /// Not invoked when Value is set from code.
     /// </summary>
     public event ValueChangedHandler ValueChanged;
-    
+
     /// <summary>
     /// Get and Set Value. It doesn't invoke ValueChanged event.
     /// </summary>
@@ -53,7 +53,11 @@ public class GradientScale : DrawingArea
 
     public int ValueAsInt => (int)Math.Round(_value);
 
-    public bool IsHue => _isHue;
+    public bool IsHue
+    {
+        get => _isHue;
+        set => _isHue = value;
+    }
 
     public GradientScale(double min, double max, double step, Color? startColor = null, Color? endColor = null,
         int height = 30)
@@ -67,14 +71,11 @@ public class GradientScale : DrawingArea
         _max = max;
         _step = step;
         _height = height;
-        _isHue = startColor == null || endColor == null;
+        _isHue = false;
         _value = min;
 
-        if (!_isHue)
-        {
-            _startColor = (Color)startColor;
-            _endColor = (Color)endColor;
-        }
+        _startColor = startColor ?? new Color();
+        _endColor = endColor ?? new Color();
 
         _isInRectClick = false;
 
@@ -86,7 +87,7 @@ public class GradientScale : DrawingArea
     {
         if (_isHue)
         {
-            throw new Exception("Scale is HUE!");
+            //throw new Exception("Scale is HUE!");
         }
 
         _startColor = startColor;
@@ -97,7 +98,7 @@ public class GradientScale : DrawingArea
     {
         if (_isHue)
         {
-            throw new Exception("Scale is HUE!");
+            //throw new Exception("Scale is HUE!");
         }
 
         _endColor = endColor;

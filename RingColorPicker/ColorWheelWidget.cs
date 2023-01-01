@@ -107,7 +107,7 @@ public class ColorWheelWidget : DrawingArea
 
         if (!_colorWheel.IsInRing(_cursorX, _cursorY))
         {
-            double d = Math.Pow(Math.Pow(_cursorX - _centerX, 2) + Math.Pow(_cursorY - _centerY, 2), 0.5) + 1;
+            double d = Math.Pow(Math.Pow(_cursorX - _centerX, 2.0) + Math.Pow(_cursorY - _centerY, 2.0), 0.5); // + 1.0;
             double x2 = _centerX + (_cursorX - _centerX) / d * _radius;
             double y2 = _centerY + (_cursorY - _centerY) / d * _radius;
 
@@ -169,7 +169,7 @@ public class ColorWheelWidget : DrawingArea
     private void DrawRing(Context context)
     {
         ImageSurface source = _colorWheel.GetImageSource();
-        context.Arc(_centerX, _centerY, _radius - 1, 0, 2 * Math.PI);
+        context.Arc(_centerX, _centerY, _radius, 0, 2 * Math.PI);
         context.Clip();
         context.SetSourceSurface(source, 0, 0);
         context.Paint();

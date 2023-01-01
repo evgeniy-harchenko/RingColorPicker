@@ -41,7 +41,7 @@ public class ColorWheel : IDisposable
                 {
                     double dx = x - _centerX;
                     double dist = dx * dx + dy * dy;
-                    if (dist > _radius * _radius)
+                    if (dist > (_radius + 1) * (_radius + 1))
                     {
                         _wheelBuf[index++] = 0;
                         _wheelBuf[index++] = 0;
@@ -52,9 +52,9 @@ public class ColorWheel : IDisposable
 
                     HSV.ToRgb(CalcHue(dx, dy), CalcSat(dist), 1, out double r, out double g, out double b);
 
-                    _wheelBuf[index++] = (byte)Math.Floor(b * 255);
-                    _wheelBuf[index++] = (byte)Math.Floor(g * 255);
-                    _wheelBuf[index++] = (byte)Math.Floor(r * 255);
+                    _wheelBuf[index++] = (byte)Math.Round(b * 255.0);
+                    _wheelBuf[index++] = (byte)Math.Round(g * 255.0);
+                    _wheelBuf[index++] = (byte)Math.Round(r * 255.0);
                     _wheelBuf[index++] = 0;
                 }
             }
@@ -92,7 +92,7 @@ public class ColorWheel : IDisposable
 
     private double CalcSat(double dist)
     {
-        return Math.Pow(dist, 0.5) / _radius;
+        return Math.Clamp(Math.Pow(dist, 0.5) / _radius, 0.0, 1.0);
     }
 
     public PointD GetCoordsByHsvColor(ColorHsv color)
@@ -102,8 +102,8 @@ public class ColorWheel : IDisposable
 
     public PointD GetCoordsByHsvColor(double hue, double sat)
     {
-        double x = Double.Cos(hue * 360 * (Math.PI / 180));
-        double y = Double.Sin(hue * 360 * (Math.PI / 180));
+        double x = Double.Cos(hue * 360.0 * (Math.PI / 180.0));
+        double y = Double.Sin(hue * 360.0 * (Math.PI / 180.0));
 
         return new PointD(_centerX + x * sat * _radius, _centerY + y * sat * _radius);
     }
@@ -124,7 +124,7 @@ public class ColorWheel : IDisposable
         double dx = x - _centerX;
         double dy = y - _centerY;
 
-        return dx * dx + dy * dy <= _radius * _radius;
+        return dx * dx + dy * dy < _radius * _radius;
     }
 
     public void Dispose()

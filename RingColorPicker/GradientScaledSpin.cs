@@ -16,8 +16,8 @@ public class GradientScaledSpin : Grid
         get => _spinButton.Value;
         set
         {
-            _gradientScale.Value = value;
             _spinButton.Value = value;
+            _gradientScale.Value = value;
         }
     }
 
@@ -25,6 +25,12 @@ public class GradientScaledSpin : Grid
     {
         get => _spinButton.Wrap;
         set => _spinButton.Wrap = value;
+    }
+    
+    public bool IsHue
+    {
+        get => _gradientScale.IsHue;
+        set => _gradientScale.IsHue = value;
     }
 
     public delegate void ValueChangedHandler(object sender, double value);
