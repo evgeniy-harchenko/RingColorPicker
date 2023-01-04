@@ -59,25 +59,29 @@ public struct ColorHsv
         if (red > green)
         {
             max = red > blue ? red : blue;
-
             min = green < blue ? green : blue;
         }
         else
         {
             max = green > blue ? green : blue;
-
             min = red < blue ? red : blue;
         }
 
         double v = max;
 
         if (max != 0.0)
+        {
             s = (max - min) / max;
+        }
         else
+        {
             s = 0.0;
+        }
 
         if (s == 0.0)
+        {
             h = 0.0;
+        }
         else
         {
             double delta = max - min;
@@ -92,9 +96,13 @@ public struct ColorHsv
             h /= 6.0;
 
             if (h < 0.0)
+            {
                 h += 1.0;
+            }
             else if (h > 1.0)
+            {
                 h -= 1.0;
+            }
         }
 
         return new ColorHsv(h, s, v);

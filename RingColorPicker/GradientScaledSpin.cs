@@ -26,14 +26,14 @@ public class GradientScaledSpin : Grid
         get => _spinButton.Wrap;
         set => _spinButton.Wrap = value;
     }
-    
+
     public bool IsHue
     {
         get => _gradientScale.IsHue;
         set => _gradientScale.IsHue = value;
     }
 
-    public delegate void ValueChangedHandler(object sender, double value);
+    public delegate void ValueChangedHandler(object sender, EventArgs e);
 
     public event ValueChangedHandler ValueChanged;
 
@@ -73,7 +73,7 @@ public class GradientScaledSpin : Grid
     private void SpinButtonOnValueChanged(object sender, EventArgs e)
     {
         _gradientScale.Value = _spinButton.ValueAsInt;
-        ValueChanged?.Invoke(this, _gradientScale.Value);
+        ValueChanged?.Invoke(this, e);
     }
 
     private void GradientScaleOnValueChanged(object sender, EventArgs e)

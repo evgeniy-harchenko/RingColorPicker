@@ -17,16 +17,20 @@ public class ColorWheelWidget : DrawingArea
     private double _cursorX, _cursorY;
     private bool _isInRingClick;
 
-    private Color _selectedColor;
+    private Color _pickedColor;
 
-    public delegate void ColorPickedHandler(object sender, Color color);
+    public delegate void ColorPickedHandler(object sender, EventArgs e);
 
     public event ColorPickedHandler ColorPicked;
 
-    public Color SelectedColor => _selectedColor;
+    public Color PickedColor
+    {
+        get => _pickedColor;
+        set => SetPickedColorRgb(value);
+    }
 
-    private double SelectorRadius => _radius / 25f;
-    private double SelectorLineWidth => _radius / 100f;
+    private double SelectorRadius => _radius / 16f;
+    private double SelectorLineWidth => _radius / 78f;
 
     public ColorWheelWidget(int size = DefaultSize)
     {
@@ -45,22 +49,22 @@ public class ColorWheelWidget : DrawingArea
         SetSizeRequest(_size, _size);
         AddEvents((int)(EventMask.ButtonPressMask | EventMask.ButtonReleaseMask | EventMask.ButtonMotionMask));
 
-        SetSelectedColorRgb(new Color(1, 1, 1));
+        SetPickedColorRgb(new Color(1, 1, 1));
     }
 
-    public void SetSelectedColorRgb(Color color)
+    private void SetPickedColorRgb(Color color)
     {
-        _selectedColor = color;
-        SetSelectedColor(_selectedColor);
+        _pickedColor = color;
+        SetPickedColor(_pickedColor);
     }
 
-    public void SetSelectedColorHsv(ColorHsv color)
+    private void SetPickedColorHsv(ColorHsv color)
     {
-        _selectedColor = color.ToRgbColor();
-        SetSelectedColor(_selectedColor);
+        _pickedColor = color.ToRgbColor();
+        SetPickedColor(_pickedColor);
     }
 
-    private void SetSelectedColor(Color color)
+    private void SetPickedColor(Color color)
     {
         PointD pointD = _colorWheel.GetCoordsByRgbColor(color);
         _cursorX = pointD.X;
@@ -142,9 +146,9 @@ public class ColorWheelWidget : DrawingArea
 
         HSV.ToRgb(h, s, v, out double r, out double g, out double b);
 
-        _selectedColor = new Color(r, g, b, 1.0);
+        _pickedColor = new Color(r, g, b, _pickedColor.A);
 
-        ColorPicked?.Invoke(this, _selectedColor);
+        ColorPicked?.Invoke(this, EventArgs.Empty);
         QueueDraw();
     }
 
@@ -161,7 +165,7 @@ public class ColorWheelWidget : DrawingArea
         context.Arc(0, 0, SelectorRadius - SelectorLineWidth, 0, 2 * Math.PI);
         context.Stroke();
 
-        context.SetSourceColor(_selectedColor);
+        context.SetSourceColor(_pickedColor);
         context.Arc(0, 0, SelectorRadius - SelectorLineWidth - SelectorLineWidth / 2, 0, 2 * Math.PI);
         context.Fill();
     }
